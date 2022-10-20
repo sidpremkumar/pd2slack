@@ -1,4 +1,5 @@
 # pd2Slack
+[![PyPI version](https://badge.fury.io/py/pd2slack.svg)](https://badge.fury.io/py/pd2slack)
 
 This python project will automatically sync on call PagerDuty services to Slack User Groups.
 
