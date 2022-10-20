@@ -18,12 +18,16 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 @click.command()
-@click.option('-slackApiKey', 'slackApiKey', help='Slack API key to use')
-@click.option('-pdApiKey', 'pdApiKey', help='Pager Duty API key to use')
+@click.option('-slackApiKey', 'slackApiKey', help='Slack API key to use', envvar='SLACK_API_KEY')
+@click.option('-pdApiKey', 'pdApiKey', help='Pager Duty API key to use', envvar='PD_API_KEY')
 def main(slackApiKey: str, pdApiKey: str):
     """
     Main entrypoint to sync PD on call for ALL services with slack user groups
     """
+    # Ensure we have all our needed options
+    if not slackApiKey or not pdApiKey:
+        raise Exception('Missing slackApiKey or pdApiKey param! Please ensure they are set!')
+
     # First get a list of slack email address
     slackUsers = allSlackUsers(slackApiKey)
 

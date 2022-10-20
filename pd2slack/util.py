@@ -83,10 +83,6 @@ def allPDUsersOnCall(pdApiKey: str):
         # TODO: Support multiple users
         userInfo = userOnCallInfoParsed['users'][0]
 
-        # TODO: remove
-        if userInfo['email'] == '7rdyrbrjj2@privaterelay.appleid.com':
-            userInfo['email'] = 'sid.premkumar@gmail.com'
-
         onCallMap[schedule['summary']] = userInfo['email']
 
     return onCallMap
@@ -101,9 +97,6 @@ def makeGETRequest(url, params={}, headers={}):
 
 def makePOSTRequest(url, data={}, headers={}):
     log.info('Making POST request to %s', url)
-
-    # if 'Content-Type' not in headers: 
-        # header['Content-Type'] = 'application/json'
 
     req = requests.post(url, json=data, headers=headers)
 
