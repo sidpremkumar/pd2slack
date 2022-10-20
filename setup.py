@@ -11,17 +11,15 @@ with open('requirements.txt', 'rb') as f:
 
 setup(
     name='pd2slack',
-    version=1.0,
+    version=0.1,
     description='Syncs PD On-call to Slack User Group',
     author='Sid Premkumar',
-    author_email='sid.premkumar@gmail.com@redhat.com',
-    # url='https://pagure.io/sync-to-jira', todo: update this Link
+    author_email='sid.premkumar@gmail.com',
+    url='https://github.com/sidpremkumar/pd2slack',
     install_requires=install_requires,
     packages=[
         'pd2slack',
     ],
-    # include_package_data=True,
-    # zip_safe=False,
     entry_points={
         'console_scripts': [
             'pd2slack=pd2slack.main:main',

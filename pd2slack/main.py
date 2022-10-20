@@ -16,8 +16,6 @@ logging.basicConfig(
 )
 
 log = logging.getLogger(__name__)
-# log.addHandler(logging.StreamHandler(sys.stdout))
-
 
 @click.command()
 @click.option('-slackApiKey', 'slackApiKey', help='Slack API key to use')
