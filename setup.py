@@ -1,9 +1,3 @@
-# This file is part of sync2jira.
-# Copyright (C) 2016 Red Hat, Inc.
-#
-# sync2jira is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
 from setuptools import setup
 
 with open('requirements.txt', 'rb') as f:
