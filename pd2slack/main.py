@@ -1,14 +1,22 @@
     
 import logging
+import sys
 
 import click
 
-from pd2slack.util import allPDUsersOnCall, allSlackUsers, createUserGroup, getSlackUserGroups
+from pd2slack.util import allPDUsersOnCall, allSlackUsers, createUserGroup, getSlackUserGroups, updateUserGroup
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 
 log = logging.getLogger(__name__)
-
-
+# log.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @click.command()
@@ -20,29 +28,38 @@ def main(slackApiKey: str, pdApiKey: str):
     """
     # First get a list of slack email address
     slackUsers = allSlackUsers(slackApiKey)
+
+    # Create a mapping of slackEmail <-> slackUserId
     slackUserEmailMapping = {}
-    # for slackUser in slackUsers:
-        # if 'profile' in slackUser and 'email' in slackUser['profile']:
-            # slackUserEmailMapping[slackUser['profile']['email']] = 
-    slackUserEmails = [slackUser['profile']['email'] for slackUser in slackUsers if 'profile' in slackUser and 'email' in slackUser['profile']]
+    for slackUser in slackUsers:
+        if 'profile' in slackUser and 'email' in slackUser['profile']:
+            slackUserEmailMapping[slackUser['profile']['email']] = slackUser['id']
+
 
     # Now get a map of ScheduleName <-> onCall user email
     pdUsersOnCall = allPDUsersOnCall(pdApiKey)
 
-    # Create a mapping PD on call <-> Slack Username
-
-    print(slackUserEmails)
-    print(pdUsersOnCall)
-
     # Get all user groups
     userGroups = getSlackUserGroups(slackApiKey)
+    userGroupsFlattened = [userGroup['name'] for userGroup in userGroups]
 
     # Loop over all the pdUsersOnCall
     for serviceName, email in pdUsersOnCall.items():
         # Check if the user group exist 
-        if serviceName not in userGroups:
+        onCallUserGroupName = f'{serviceName}-oncall'
+        if onCallUserGroupName not in userGroupsFlattened:
             # We need to create a new user group
-            createUserGroup(serviceName, slackApiKey)
+            newUserGroup = createUserGroup(onCallUserGroupName, serviceName, slackApiKey)
+            userGroups.append(newUserGroup)
         
+        # Get the userGroupId
+        userGroupId = [userGroup['id'] for userGroup in userGroups if userGroup['name'] == onCallUserGroupName]
+        if not userGroupId:
+            log.error(f'Unable to find userGroupId for service: {onCallUserGroupName}')
+            continue
+        userGroupId = userGroupId[0]
+
         # Update the userGroups on slack
+        log.info(f'Updating oncall group for PD service: {serviceName} to email: {email}')
+        updateUserGroup(userGroupId, slackUserEmailMapping[email], slackApiKey)
 

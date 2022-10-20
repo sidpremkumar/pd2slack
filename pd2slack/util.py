@@ -11,7 +11,7 @@ def allSlackUsers(slackApiKey: str):
     Gets all slack users
     """
     url = f'https://slack.com/api/users.list'
-    response = _make_request(url, headers={'Authorization': f'Bearer {slackApiKey}'})
+    response = makeGETRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'})
     responseJson = response.json()
 
     if (responseJson['ok'] != True):
@@ -25,27 +25,40 @@ def getSlackUserGroups(slackApiKey: str):
     Gets all slack user groups that exist
     """
     url = 'https://slack.com/api/usergroups.list'
-    response = _make_request(url, headers={'Authorization': f'Bearer {slackApiKey}'})
+    response = makeGETRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'})
     responseJson = response.json()
 
     if (responseJson['ok'] != True):
         raise Exception(f'Invalid status code when getting all userGroups: {responseJson["error"]}')
 
-    print(responseJson)
-
     log.info('Found %d total Slack userGroup', len(responseJson['usergroups']))
     return responseJson['usergroups']
 
-def createUserGroup(userGroupName: str, slackApiKey: str):
+def createUserGroup(userGroupName: str, serviceName: str, slackApiKey: str):
     """
     Creates a user group
     """
     url = 'https://slack.com/api/usergroups.create'
-    response = _make_request(url, headers={'Authorization': f'Bearer {slackApiKey}'}, params={'name': userGroupName})
+    response = makePOSTRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'}, 
+        data={'name': userGroupName, 'handle': userGroupName.lower(), 'description': f'Autocreated usergroup for PagerDuty service: {serviceName}'})
     responseJson = response.json()
 
     if (responseJson['ok'] != True):
         raise Exception(f'Error creating user group: {userGroupName}. {responseJson["error"]}')
+    
+    return responseJson
+
+def updateUserGroup(userGroupId: str, userId: str, slackApiKey: str):
+    """
+    Updates a given userGroup to a slack email
+    """
+    url = 'https://slack.com/api/usergroups.users.update'
+    response = makePOSTRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'}, data={'usergroup': userGroupId, 'users': [userId]})
+    responseJson = response.json()
+
+    if (responseJson['ok'] != True):
+        raise Exception(f'Error updating user group: {userGroupId} for user: ${userId}. {responseJson["error"]}')
+
 
 def allPDUsersOnCall(pdApiKey: str):
     """
@@ -55,7 +68,7 @@ def allPDUsersOnCall(pdApiKey: str):
 
     # First query for all schedules
     schedulesUrl = 'https://api.pagerduty.com/schedules'
-    scheduleInfo = _make_request(schedulesUrl, headers=headers)
+    scheduleInfo = makeGETRequest(schedulesUrl, headers=headers)
     scheduleInfoParsed = scheduleInfo.json()
     onCallMap = {}
 
@@ -63,7 +76,7 @@ def allPDUsersOnCall(pdApiKey: str):
     for schedule in scheduleInfoParsed['schedules']:
         # Get the user on call
         userOnCallUrl = f'https://api.pagerduty.com/schedules/{schedule["id"]}/users'
-        userOnCallInfo = _make_request(userOnCallUrl, headers=headers)
+        userOnCallInfo = makeGETRequest(userOnCallUrl, headers=headers)
         userOnCallInfoParsed = userOnCallInfo.json()
 
         # Assume only one user
@@ -79,9 +92,19 @@ def allPDUsersOnCall(pdApiKey: str):
     return onCallMap
 
 
-def _make_request(url, params={}, headers={}):
-    log.info('Making request to %s', url)
+def makeGETRequest(url, params={}, headers={}):
+    log.info('Making GET request to %s', url)
 
     req = requests.get(url, params=params, headers=headers)
+
+    return req
+
+def makePOSTRequest(url, data={}, headers={}):
+    log.info('Making POST request to %s', url)
+
+    # if 'Content-Type' not in headers: 
+        # header['Content-Type'] = 'application/json'
+
+    req = requests.post(url, json=data, headers=headers)
 
     return req
