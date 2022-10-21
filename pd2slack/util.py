@@ -34,13 +34,13 @@ def getSlackUserGroups(slackApiKey: str):
     log.info('Found %d total Slack userGroup', len(responseJson['usergroups']))
     return responseJson['usergroups']
 
-def createUserGroup(userGroupName: str, serviceName: str, slackApiKey: str):
+def createUserGroup(userGroupName: str, serviceName: str, pdServiceName: str, slackApiKey: str):
     """
     Creates a user group
     """
     url = 'https://slack.com/api/usergroups.create'
     response = makePOSTRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'}, 
-        data={'name': userGroupName, 'handle': userGroupName.lower(), 'description': f'Autocreated usergroup for PagerDuty service: {serviceName}'})
+        data={'name': userGroupName, 'handle': userGroupName.lower(), 'description': f'Autocreated usergroup for PagerDuty service : {pdServiceName}'})
     responseJson = response.json()
 
     if (responseJson['ok'] != True):

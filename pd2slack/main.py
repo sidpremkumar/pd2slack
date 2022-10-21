@@ -73,6 +73,9 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
 
     # Loop over all the pdUsersOnCall
     for serviceName, email in pdUsersOnCall.items():
+        # Save the pd service name
+        pdServiceName = serviceName
+
         if ignoreEmailDomain:
             email = email.split('@')[0] # test@gmail.com -> test
         
@@ -95,7 +98,7 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         if onCallUserGroupName not in userGroupsFlattened:
             # We need to create a new user group
             if (not dryRun):
-                newUserGroup = createUserGroup(onCallUserGroupName, serviceName, slackApiKey)
+                newUserGroup = createUserGroup(onCallUserGroupName, serviceName, pdServiceName, slackApiKey)
             else: 
                 log.info(f'DryRun set to: {dryRun}. Would create userGroup: {onCallUserGroupName}')
                 newUserGroup = {'usergroup': {'name': onCallUserGroupName, 'id': 'fake'}}
