@@ -57,7 +57,7 @@ def updateUserGroup(userGroupId: str, userIds, slackApiKey: str):
     responseJson = response.json()
 
     if (responseJson['ok'] != True):
-        raise Exception(f'Error updating user group: {userGroupId} for slackUserIds: ${userIds}. {responseJson["error"]}')
+        raise Exception(f'Error updating user group: {userGroupId} for slackUserIds: {userIds}. {responseJson["error"]}')
 
 
 def allPDUsersOnCall(pdApiKey: str):

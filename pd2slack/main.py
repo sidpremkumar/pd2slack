@@ -22,8 +22,9 @@ log = logging.getLogger(__name__)
 @click.option('-pdApiKey', 'pdApiKey', help='Pager Duty API key to use', envvar='PD_API_KEY')
 @click.option('-configPath', 'configPath', help='Optional config path to use', envvar='PD2SLACK_CINFIG')
 @click.option('-ignoreEmailDomain', 'ignoreEmailDomain', help='Ignore the email domain, and just use the alias', default=False)
+@click.option('-slackEmailDomain', 'slackEmailDomain', help='With SSO, sometimes slack will create two users, and this can cause issues syncing, specify the slack email domain to use', default=None)
 @click.option('-dryRun', 'dryRun', help='Don\'t make any changes, just log what we\'ll do', default=False)
-def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bool, dryRun: bool):
+def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bool, slackEmailDomain: str, dryRun: bool):
     """
     Main entrypoint to sync PD on call for ALL services with slack user groups
     """
@@ -52,6 +53,11 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
     for slackUser in slackUsers:
         if 'profile' in slackUser and 'email' in slackUser['profile']:
             slackEmail = slackUser['profile']['email']
+            if slackEmailDomain:
+                # If we set up to only look for a specific domain, just filter based on that and skip it if it doesn't include it
+                if slackEmailDomain not in slackEmail:
+                    continue
+            
             if ignoreEmailDomain:
                 slackEmail = slackEmail.split('@')[0]  # test@gmail.com -> test
             slackUserEmailMapping[slackEmail] = slackUser['id']
