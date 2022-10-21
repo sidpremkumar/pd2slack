@@ -1,5 +1,8 @@
 {
     "serviceMapping": {
-        "Backend Pd Name": "slackAliasToUse"
+        "PD Schedule Name": {
+            "alias": "slackAliasToUse-oncall",
+            "usersToAdd": ["extraManager@acmeco.com"]
+        }
     }
 }

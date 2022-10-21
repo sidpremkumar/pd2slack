@@ -48,16 +48,16 @@ def createUserGroup(userGroupName: str, serviceName: str, slackApiKey: str):
     
     return responseJson
 
-def updateUserGroup(userGroupId: str, userId: str, slackApiKey: str):
+def updateUserGroup(userGroupId: str, userIds, slackApiKey: str):
     """
     Updates a given userGroup to a slack email
     """
     url = 'https://slack.com/api/usergroups.users.update'
-    response = makePOSTRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'}, data={'usergroup': userGroupId, 'users': [userId]})
+    response = makePOSTRequest(url, headers={'Authorization': f'Bearer {slackApiKey}'}, data={'usergroup': userGroupId, 'users': userIds})
     responseJson = response.json()
 
     if (responseJson['ok'] != True):
-        raise Exception(f'Error updating user group: {userGroupId} for user: ${userId}. {responseJson["error"]}')
+        raise Exception(f'Error updating user group: {userGroupId} for slackUserIds: ${userIds}. {responseJson["error"]}')
 
 
 def allPDUsersOnCall(pdApiKey: str):

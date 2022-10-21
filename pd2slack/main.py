@@ -37,7 +37,7 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         
         log.info(f'Using passed in config: {configPath}')
     else:
-        config = None
+        raise Exception('Config must be passed in')
 
     # Ensure we have all our needed options
     if not slackApiKey or not pdApiKey:
@@ -63,7 +63,7 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
 
     # Get all user groups
     userGroups = getSlackUserGroups(slackApiKey)
-    userGroupsFlattened = [userGroup['name'] for userGroup in userGroups]
+    userGroupsFlattened = [userGroup['handle'] for userGroup in userGroups]
 
     # Loop over all the pdUsersOnCall
     for serviceName, email in pdUsersOnCall.items():
@@ -73,18 +73,15 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         if email not in slackUserEmailMapping:
             # If the email of PD does not match anyone we know in slack :sad_cowboy:
             log.error(f'Unable to sync email {email} as there is no corresponding slack email!')
-            print(slackUserEmailMapping)
             continue
 
         # If we have passed a config, use that as the serviceName instead
-        if not config is None:
-            if serviceName in config['serviceMapping']:
-                serviceName = config['serviceMapping'][serviceName]
-            else: 
-                # We only want to sync whats in the config
-                log.warn(f'Skipping serviceName: {serviceName} since its not in config!')
-                continue
-        onCallUserGroupName = f'{serviceName}-oncall'
+        if serviceName in config['serviceMapping']:
+            onCallUserGroupName = config['serviceMapping'][serviceName]['alias']
+        else: 
+            # We only want to sync whats in the config
+            log.warn(f'Skipping serviceName: {serviceName} since its not in config!')
+            continue
 
         log.info(f'Syncing serviceName: {serviceName} with slack userGroup {onCallUserGroupName}')
         
@@ -104,16 +101,26 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
             userGroups.append(newUserGroup['usergroup'])
         
         # Get the userGroupId
-        userGroupId = [userGroup['id'] for userGroup in userGroups if 'name' in userGroup and userGroup['name'] == onCallUserGroupName]
+        userGroupId = [userGroup['id'] for userGroup in userGroups if 'name' in userGroup and userGroup['handle'] == onCallUserGroupName]
         if not userGroupId:
             log.error(f'Unable to find userGroupId from service: {serviceName} with alias: {onCallUserGroupName}')
             continue
         userGroupId = userGroupId[0]
 
+        # Build a list of userIds, if the config specified to add extra users, add them as well
+        userIds = [slackUserEmailMapping[email]]
+        if 'usersToAdd' in config['serviceMapping'][serviceName]:
+            for userToAdd in config['serviceMapping'][serviceName]['usersToAdd']:
+                # Lookup the slack userId from the email 
+                if ignoreEmailDomain:
+                    userToAdd = userToAdd.split('@')[0] # test@gmail.com -> test
+                slackId = slackUserEmailMapping[userToAdd]
+                userIds.append(slackId)
+
         # Update the userGroups on slack
         if not dryRun:
-            log.info(f'Updating oncall group for PD service: {serviceName} to email: {email}')
-            updateUserGroup(userGroupId, slackUserEmailMapping[email], slackApiKey)
+            log.info(f'Updating oncall group for PD service: {serviceName} to slackUserIds: {userIds}')
+            updateUserGroup(userGroupId, userIds, slackApiKey)
         else: 
-            log.info(f'DryRun set to: {dryRun}. Would update onCall group from service: {serviceName} with alias: {onCallUserGroupName} to email: {email} with slackUserId: {slackUserEmailMapping[email]}')
+            log.info(f'DryRun set to: {dryRun}. Would update onCall group from service: {serviceName} with alias: {onCallUserGroupName} to slackUserIds: {userIds}')
 

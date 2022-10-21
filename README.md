@@ -22,7 +22,7 @@ The mapping is done via email matching, this assumes the pager duty email matche
 To run, all you have to do is:
 ```
 > pip3 install pd2slack
-> pd2slack -slackApiKey {SLACK_API_KEY} -pdApiKey {PD_API_KEY}
+> pd2slack -slackApiKey {SLACK_API_KEY} -pdApiKey {PD_API_KEY} -config {PATH_TO_CONFIG}
 ```
 
 We also support environment variable, for example:
