@@ -21,8 +21,9 @@ log = logging.getLogger(__name__)
 @click.option('-slackApiKey', 'slackApiKey', help='Slack API key to use', envvar='SLACK_API_KEY')
 @click.option('-pdApiKey', 'pdApiKey', help='Pager Duty API key to use', envvar='PD_API_KEY')
 @click.option('-configPath', 'configPath', help='Optional config path to use', envvar='PD2SLACK_CINFIG')
+@click.option('-ignoreEmailDomain', 'ignoreEmailDomain', help='Ignore the email domain, and just use the alias', default=False)
 @click.option('-dryRun', 'dryRun', help='Don\'t make any changes, just log what we\'ll do', default=True)
-def main(slackApiKey: str, pdApiKey: str, configPath: str, dryRun: bool):
+def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bool, dryRun: bool):
     """
     Main entrypoint to sync PD on call for ALL services with slack user groups
     """
@@ -51,10 +52,13 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, dryRun: bool):
     for slackUser in slackUsers:
         if 'profile' in slackUser and 'email' in slackUser['profile']:
             slackEmail = slackUser['profile']['email']
+            if ignoreEmailDomain:
+                slackEmail = slackEmail.split('@')[0]  # test@gmail.com -> test
             slackUserEmailMapping[slackEmail] = slackUser['id']
-            slackUserEmailMapping['7rdyrbrjj2@privaterelay.appleid.com'] = slackUser['id']
+    
 
     # Now get a map of ScheduleName <-> onCall user email
+    log.info('Getting all pd users on call')
     pdUsersOnCall = allPDUsersOnCall(pdApiKey)
 
     # Get all user groups
@@ -63,9 +67,13 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, dryRun: bool):
 
     # Loop over all the pdUsersOnCall
     for serviceName, email in pdUsersOnCall.items():
+        if ignoreEmailDomain:
+            email = email.split('@')[0] # test@gmail.com -> test
+        
         if email not in slackUserEmailMapping:
             # If the email of PD does not match anyone we know in slack :sad_cowboy:
             log.error(f'Unable to sync email {email} as there is no corresponding slack email!')
+            print(slackUserEmailMapping)
             continue
 
         # If we have passed a config, use that as the serviceName instead
@@ -107,5 +115,5 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, dryRun: bool):
             log.info(f'Updating oncall group for PD service: {serviceName} to email: {email}')
             updateUserGroup(userGroupId, slackUserEmailMapping[email], slackApiKey)
         else: 
-            log.info(f'DryRun set to: {dryRun}. Would update onCall group from service: {serviceName} with alias: {onCallUserGroupName} to email: {email}')
+            log.info(f'DryRun set to: {dryRun}. Would update onCall group from service: {serviceName} with alias: {onCallUserGroupName} to email: {email} with slackUserId: {slackUserEmailMapping[email]}')
 

@@ -36,6 +36,9 @@ We also support environment variable, for example:
 
 You can deploy this program by running the process `pd2Slack` on a schedule (based on how often you want to update). A cron might be the best way to deploy
 
+*Slack token permissions:* You will need the following permissions on your slack token:
+* 
+
 ## Custom Slack UserGroup Name
 
 You can optionally pass `-configPath` to the command that points to a config (see `exampleConfig.json`). This mapping will be used to only sync PagerDuty schedules with the name as a key in `serviceMapping` with the slackGroup that is the corresponding value. 

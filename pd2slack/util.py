@@ -74,16 +74,22 @@ def allPDUsersOnCall(pdApiKey: str):
 
     # Loop over each schedule to create a map of scheduleName <-> email
     for schedule in scheduleInfoParsed['schedules']:
+        scheduleId = schedule['id']
+
+
         # Get the user on call
-        userOnCallUrl = f'https://api.pagerduty.com/schedules/{schedule["id"]}/users'
-        userOnCallInfo = makeGETRequest(userOnCallUrl, headers=headers)
+        params = {
+            'schedule_ids[]': [scheduleId],
+            'include[]': ['users']
+        }
+        userOnCallUrl = 'https://api.pagerduty.com/oncalls'
+        userOnCallInfo = makeGETRequest(userOnCallUrl, headers=headers, params=params)
         userOnCallInfoParsed = userOnCallInfo.json()
 
-        # Assume only one user
-        # TODO: Support multiple users
-        userInfo = userOnCallInfoParsed['users'][0]
+        # Parse out the users email
+        onCallUserEmail = userOnCallInfoParsed['oncalls'][0]['user']['email']
 
-        onCallMap[schedule['summary']] = userInfo['email']
+        onCallMap[schedule['summary']] = onCallUserEmail
 
     return onCallMap
 
