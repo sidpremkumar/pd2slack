@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 @click.option('-pdApiKey', 'pdApiKey', help='Pager Duty API key to use', envvar='PD_API_KEY')
 @click.option('-configPath', 'configPath', help='Optional config path to use', envvar='PD2SLACK_CINFIG')
 @click.option('-ignoreEmailDomain', 'ignoreEmailDomain', help='Ignore the email domain, and just use the alias', default=False)
-@click.option('-dryRun', 'dryRun', help='Don\'t make any changes, just log what we\'ll do', default=True)
+@click.option('-dryRun', 'dryRun', help='Don\'t make any changes, just log what we\'ll do', default=False)
 def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bool, dryRun: bool):
     """
     Main entrypoint to sync PD on call for ALL services with slack user groups
