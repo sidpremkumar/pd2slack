@@ -37,7 +37,11 @@ We also support environment variable, for example:
 You can deploy this program by running the process `pd2Slack` on a schedule (based on how often you want to update). A cron might be the best way to deploy
 
 *Slack token permissions:* You will need the following permissions on your slack token:
-* 
+
+* `users:read.email`
+* `users:read`
+* `usergroups:write`
+* `usergroups:read`
 
 ## Custom Slack UserGroup Name
 
