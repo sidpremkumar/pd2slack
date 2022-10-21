@@ -1,0 +1,5 @@
+{
+    "serviceMapping": {
+        "Backend Pd Name": "slackAliasToUse"
+    }
+}
