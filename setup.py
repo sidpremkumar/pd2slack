@@ -8,7 +8,7 @@ with open('README.md', 'rb') as f:
 
 setup(
     name='pd2slack',
-    version=0.32,
+    version=0.4,
     description='Syncs PD On-call to Slack User Group',
     long_description = long_description,
     long_description_content_type='text/markdown',
