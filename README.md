@@ -10,7 +10,7 @@ For example if you have an on call schedule such as:
 
 It will automatically create a slack user group as follows
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sidpremkumar/pd2slack/master/.github/src/pagerDutySchedule.jpeg" />
+  <img src="https://raw.githubusercontent.com/sidpremkumar/pd2slack/master/.github/src/slackUserGroup.jpeg" />
 </p>
 
 With "Sidhartha Premkumar" as the sole member of @backend-oncall. 
