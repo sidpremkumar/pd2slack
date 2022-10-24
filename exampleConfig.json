@@ -4,5 +4,8 @@
             "alias": "slackAliasToUse-oncall",
             "usersToAdd": ["extraManager@acmeco.com"]
         }
+    },
+    "customEmailMapping": {
+        "badEmailInPD": "goodEmailInSlack"
     }
 }

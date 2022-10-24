@@ -79,6 +79,11 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         if ignoreEmailDomain:
             email = email.split('@')[0] # test@gmail.com -> test
         
+        # Check if we have a custom email mapping in our config
+        if config.get('customEmailMapping', None):
+            if email in config['customEmailMapping']:
+                email = config['customEmailMapping'][email]
+
         if email not in slackUserEmailMapping:
             # If the email of PD does not match anyone we know in slack :sad_cowboy:
             log.error(f'Unable to sync email {email} as there is no corresponding slack email!')
