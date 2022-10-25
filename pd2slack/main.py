@@ -76,18 +76,22 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         # Save the pd service name
         pdServiceName = serviceName
 
-        if ignoreEmailDomain:
-            email = email.split('@')[0] # test@gmail.com -> test
-        
-        # Check if we have a custom email mapping in our config
-        if config.get('customEmailMapping', None):
-            if email in config['customEmailMapping']:
-                email = config['customEmailMapping'][email]
+        if email:
+            if email and ignoreEmailDomain:
+                email = email.split('@')[0] # test@gmail.com -> test
+            
+            # Check if we have a custom email mapping in our config
+            if config.get('customEmailMapping', None):
+                if email in config['customEmailMapping']:
+                    email = config['customEmailMapping'][email]
 
-        if email not in slackUserEmailMapping:
-            # If the email of PD does not match anyone we know in slack :sad_cowboy:
-            log.error(f'Unable to sync email {email} as there is no corresponding slack email!')
-            continue
+            if email not in slackUserEmailMapping:
+                # If the email of PD does not match anyone we know in slack :sad_cowboy:
+                log.error(f'Unable to sync email {email} as there is no corresponding slack email!')
+                continue
+        else: 
+            # Email is None, this means there is no one on call
+            log.info(f'No user on call for {serviceName}')
 
         # If we have passed a config, use that as the serviceName instead
         if serviceName in config['serviceMapping']:
@@ -106,7 +110,7 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
                 newUserGroup = createUserGroup(onCallUserGroupName, serviceName, pdServiceName, slackApiKey)
             else: 
                 log.info(f'DryRun set to: {dryRun}. Would create userGroup: {onCallUserGroupName}')
-                newUserGroup = {'usergroup': {'name': onCallUserGroupName, 'id': 'fake'}}
+                newUserGroup = {'usergroup': {'name': onCallUserGroupName, 'id': 'fake', 'handle': onCallUserGroupName}}
 
             if 'usergroup' not in newUserGroup:
                 raise Exception('Something went wrong with the request')
@@ -122,7 +126,9 @@ def main(slackApiKey: str, pdApiKey: str, configPath: str, ignoreEmailDomain: bo
         userGroupId = userGroupId[0]
 
         # Build a list of userIds, if the config specified to add extra users, add them as well
-        userIds = [slackUserEmailMapping[email]]
+        userIds = []
+        if email:
+            userIds.append(slackUserEmailMapping[email])
         if 'usersToAdd' in config['serviceMapping'][serviceName]:
             for userToAdd in config['serviceMapping'][serviceName]['usersToAdd']:
                 # Lookup the slack userId from the email 

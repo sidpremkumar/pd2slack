@@ -76,7 +76,6 @@ def allPDUsersOnCall(pdApiKey: str):
     for schedule in scheduleInfoParsed['schedules']:
         scheduleId = schedule['id']
 
-
         # Get the user on call
         params = {
             'schedule_ids[]': [scheduleId],
@@ -86,10 +85,14 @@ def allPDUsersOnCall(pdApiKey: str):
         userOnCallInfo = makeGETRequest(userOnCallUrl, headers=headers, params=params)
         userOnCallInfoParsed = userOnCallInfo.json()
 
-        # Parse out the users email
-        onCallUserEmail = userOnCallInfoParsed['oncalls'][0]['user']['email']
+        if not userOnCallInfoParsed['oncalls']:
+            # There is no user on call
+            onCallMap[schedule['summary']] = None
+        else:
+            # Parse out the users email
+            onCallUserEmail = userOnCallInfoParsed['oncalls'][0]['user']['email']
 
-        onCallMap[schedule['summary']] = onCallUserEmail
+            onCallMap[schedule['summary']] = onCallUserEmail
 
     return onCallMap
 
